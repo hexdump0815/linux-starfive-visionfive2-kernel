@@ -1,0 +1,4 @@
+origin	https://github.com/starfive-tech/linux.git (fetch)
+origin	https://github.com/starfive-tech/linux.git (push)
+
+see also: https://github.com/starfive-tech/VisionFive2 to find out the kernel tree commits of tagged versions
