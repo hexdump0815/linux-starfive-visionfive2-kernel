@@ -3,21 +3,20 @@
 # - /compile/source/linux-bsp-vf2 - the kernel sources checked out from gitrepo
 # - /compile/result/bsp-sf - the resulting kernel, modules etc. tar.gz files
 # - /compile/doc/kernel-config-options - https://github.com/hexdump0815/kernel-config-options
-# name: bsp-vf2 - kernel for the starfive visionfive 2 sbc based on the starfive linux kernel tree
+# name: sfv-260 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.6.0 linux kernel tree
 
 # info: this is based on commit 162a9afb0b009393f4f21ee8c20d773131fd6b1e of the starfive kernel tree
 #       which matches version VF2_v2.6.0 of the visionfive2 tree
 
 cd /compile/source/linux-bsp-vf2
 
+export TREE_VERSION=260
 export ARCH=riscv
-# lets start with just the normal visionfive 2 kernel config and do the more complex config handling later ...
-#scripts/kconfig/merge_config.sh -m arch/riscv/configs/defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/bsp-sf/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/bsp-sf/misc.vf2/options/additional-options-special.cfg
-#( cd /compile/doc/kernel-config-options ; git rev-parse --verify HEAD ) > /compile/doc/bsp-sf/misc.vf2/options/kernel-config-options.version
-#cp /compile/doc/bsp-sf/misc.vf2/misc/config-5.15.0-starfive .config
-make starfive_visionfive2_defconfig
+# lets start with the starfive_visionfive2 defconfig and adjust options from there
+scripts/kconfig/merge_config.sh -m arch/riscv/configs/starfive_visionfive2_defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/bsp-sf/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/bsp-sf/misc.vf2/options/additional-options-special.cfg
+( cd /compile/doc/kernel-config-options ; git rev-parse --verify HEAD ) > /compile/doc/bsp-sf/misc.vf2/options/kernel-config-options.version
 make olddefconfig
-./scripts/config --set-str CONFIG_LOCALVERSION "-bsp-vf2"
+./scripts/config --set-str CONFIG_LOCALVERSION "-sfv-${TREE_VERSION}"
 make -j 4 Image.gz dtbs modules
 cd tools/perf
 make
@@ -42,9 +41,8 @@ cp -v arch/riscv/boot/dts/starfive/jh7110-*.dtb /boot/dtb-${kver}/starfive
 cp -v System.map /boot/System.map-${kver}
 cd /boot
 update-initramfs -c -k ${kver}
-mv *-${kver} boot
-tar cvzf /compile/source/linux-bsp-vf2/${kver}.tar.gz /boot/boot/vmlinuz-${kver} /boot/boot/System.map-${kver} /boot/boot/config-${kver} /boot/boot/dtb-${kver} /boot/boot/initrd.img-${kver} /lib/modules/${kver}
-cp -v /compile/doc/bsp-sf/config.vf2 /compile/doc/bsp-sf/config.vf2.old
-cp -v /compile/source/linux-bsp-vf2/.config /compile/doc/bsp-sf/config.vf2
-cp -v /compile/source/linux-bsp-vf2/.config /compile/doc/bsp-sf/config.vf2-${kver}
+tar cvzf /compile/source/linux-bsp-vf2/${kver}.tar.gz /boot/vmlinuz-${kver} /boot/System.map-${kver} /boot/config-${kver} /boot/dtb-${kver} /boot/initrd.img-${kver} /lib/modules/${kver}
+cp -v /compile/doc/bsp-sf/config.sfv /compile/doc/bsp-sf/config.sfv.old
+cp -v /compile/source/linux-bsp-vf2/.config /compile/doc/bsp-sf/config.sfv
+cp -v /compile/source/linux-bsp-vf2/.config /compile/doc/bsp-sf/config.sfv-${kver}
 cp -v /compile/source/linux-bsp-vf2/*.tar.gz /compile/result/bsp-sf
