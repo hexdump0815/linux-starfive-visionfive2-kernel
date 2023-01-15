@@ -1,0 +1,45 @@
+from: https://github.com/Icenowy/linux/commit/b72e8d8dc812143db2cf8f373bc01dd291dad73f
+
+From b72e8d8dc812143db2cf8f373bc01dd291dad73f Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Tue, 13 Dec 2022 14:45:16 +0800
+Subject: [PATCH] drm/dc8200: implement fbdev
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+---
+ drivers/gpu/drm/verisilicon/vs_drv.c | 2 ++
+ drivers/gpu/drm/verisilicon/vs_gem.c | 7 +++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/drm/verisilicon/vs_drv.c b/drivers/gpu/drm/verisilicon/vs_drv.c
+index af5abe8047e93a..4a9a5f8fb78127 100644
+--- a/drivers/gpu/drm/verisilicon/vs_drv.c
++++ b/drivers/gpu/drm/verisilicon/vs_drv.c
+@@ -251,6 +251,8 @@ static int vs_drm_bind(struct device *dev)
+ 	if (ret)
+ 		goto err_helper;
+ 
++	drm_fbdev_generic_setup(drm_dev, 32);
++
+ 	return 0;
+ 
+ err_helper:
+diff --git a/drivers/gpu/drm/verisilicon/vs_gem.c b/drivers/gpu/drm/verisilicon/vs_gem.c
+index a1f84bcfe7d2b4..d500eb783e8cdf 100755
+--- a/drivers/gpu/drm/verisilicon/vs_gem.c
++++ b/drivers/gpu/drm/verisilicon/vs_gem.c
+@@ -389,6 +389,13 @@ struct sg_table *vs_gem_prime_get_sg_table(struct drm_gem_object *obj)
+ 
+ int vs_gem_prime_vmap(struct drm_gem_object *obj, struct dma_buf_map *map)
+ {
++	struct vs_gem_object *vs_obj = to_vs_gem_object(obj);
++
++	void * vaddr = vs_obj->dma_attrs & DMA_ATTR_NO_KERNEL_MAPPING ?
++		       page_address(vs_obj->cookie) : vs_obj->cookie;
++
++	dma_buf_map_set_vaddr(map, vaddr);
++
+ 	return 0;
+ }
+ 
+
