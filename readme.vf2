@@ -4,10 +4,10 @@
 # - /compile/result/starfive - the resulting kernel, modules etc. tar.gz files
 # - /compile/doc/kernel-config-options - https://github.com/hexdump0815/kernel-config-options
 # - /compile/doc/kernel-extra-patches - https://github.com/hexdump0815/kernel-extra-patches
-# name: vf2-260 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.6.0 linux kernel tree
+# name: vf2-280 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.6.0 linux kernel tree
 
-# info: this is based on commit 162a9afb0b009393f4f21ee8c20d773131fd6b1e of the starfive kernel tree
-#       which matches version VF2_v2.6.0 of the visionfive2 tree
+# info: this is based on commit 59cf9af678dbfa3d73f6cb86ed1ae7219da9f5c9 of the starfive kernel tree
+#       which matches version VF2_v2.8.0 of the visionfive2 tree
 
 cd /compile/source/linux-starfive-vf2
 
@@ -20,7 +20,10 @@ patch -p1 < /compile/doc/starfive/misc.vf2/patches/disable-gamma-lut.patch
 # add mglru backport to v5.15
 patch -p1 < /compile/doc/kernel-extra-patches/multi-gen-lru/v5.15/mglru-5.15.patch
 
-export TREE_VERSION=260
+# fix compilation with newer binutils
+patch -p1 < /compile/doc/starfive/misc.vf2/patches/make-newer-binutils-work.patch
+
+export TREE_VERSION=280
 export ARCH=riscv
 # lets start with the starfive_visionfive2 defconfig and adjust options from there
 scripts/kconfig/merge_config.sh -m arch/riscv/configs/starfive_visionfive2_defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/starfive/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/starfive/misc.vf2/options/additional-options-special.cfg
@@ -29,6 +32,8 @@ make olddefconfig
 ./scripts/config --set-str CONFIG_LOCALVERSION "-vf2-${TREE_VERSION}"
 make -j 4 Image.gz dtbs modules
 cd tools/perf
+# without this it would fail on warnings
+export WERROR=0
 make
 cd ../power/cpupower
 make
