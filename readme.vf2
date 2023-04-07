@@ -4,27 +4,29 @@
 # - /compile/result/starfive - the resulting kernel, modules etc. tar.gz files
 # - /compile/doc/kernel-config-options - https://github.com/hexdump0815/kernel-config-options
 # - /compile/doc/kernel-extra-patches - https://github.com/hexdump0815/kernel-extra-patches
-# name: vf2-104 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.10.4 linux kernel tree
+# name: vf2-115 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.11.5 linux kernel tree
 
-# info: this is based on commit 4639179fefcf0ba72fb3dd2475bddf4148aeeed4 i.e. tag VF2_v2.10.4
+# info: this is based on commit a87c6861c6d96621026ee53b94f081a1a00a4cc7 i.e. tag VF2_v2.11.5
 #       of the starfive kernel tree from https://github.com/starfive-tech/linux/ which matches
-#       version VF2_v2.10.4 of the visionfive2 tree from https://github.com/starfive-tech/VisionFive2
+#       version VF2_v2.11.5 of the visionfive2 tree from https://github.com/starfive-tech/VisionFive2
 
 cd /compile/source/linux-starfive-vf2
 
 # patches
-# add some patches from the icenowy star64 kernel tree
-patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-fbdev.patch 
-patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-pcie-gpu-support-v2.10.4.patch
-patch -p1 < /compile/doc/starfive/misc.vf2/patches/disable-gamma-lut.patch
+# add some patches from the icenowy star64 kernel
+# fb console patch - no longer required
+#patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-fbdev.patch
+# lets keep those off for now as well
+#patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-pcie-gpu-support-v2.10.4.patch
+#patch -p1 < /compile/doc/starfive/misc.vf2/patches/disable-gamma-lut.patch
 
 # add mglru backport to v5.15
 patch -p1 < /compile/doc/kernel-extra-patches/multi-gen-lru/v5.15/mglru-5.15.patch
 
-# fix compilation with newer binutils
-patch -p1 < /compile/doc/starfive/misc.vf2/patches/make-newer-binutils-work.patch
+# fix compilation with newer binutils - no longer required
+#patch -p1 < /compile/doc/starfive/misc.vf2/patches/make-newer-binutils-work.patch
 
-export TREE_VERSION=104
+export TREE_VERSION=115
 export ARCH=riscv
 # lets start with the starfive_visionfive2 defconfig and adjust options from there
 scripts/kconfig/merge_config.sh -m arch/riscv/configs/starfive_visionfive2_defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/starfive/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/starfive/misc.vf2/options/additional-options-special.cfg
