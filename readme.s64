@@ -1,0 +1,56 @@
+# directories:
+# - /compile/doc/starfive - the files in this dir
+# - /compile/source/linux-star64-s64 - the kernel sources checked out from gitrepo
+# - /compile/result/starfive - the resulting kernel, modules etc. tar.gz files
+# - /compile/doc/kernel-config-options - https://github.com/hexdump0815/kernel-config-options
+# - /compile/doc/kernel-extra-patches - https://github.com/hexdump0815/kernel-extra-patches
+# name: s64-001 - kernel for the pine64 star64 sbc based on the fishwaldo star64 linux kernel tree
+#                 numbers start from 001 as there are no really uesable tags on this tree now
+
+# info: this is based on commit a51211b07c39f1d1dd9e60c6207a25354ce8f4a3
+#       of the fishwaldo star64 kernel tree from https://github.com/Fishwaldo/Star64_linux
+
+cd /compile/source/linux-star64-s64
+
+# patches
+# add mglru backport to v5.15 - not used as it does not patch cleanly against the patched up tree
+#patch -p1 < /compile/doc/kernel-extra-patches/multi-gen-lru/v5.15/mglru-5.15.patch
+
+export TREE_VERSION=001
+export ARCH=riscv
+# lets start with the pine64_star64_defconfig and adjust options from there
+scripts/kconfig/merge_config.sh -m arch/riscv/configs/pine64_star64_defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/starfive/misc.s64/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/starfive/misc.s64/options/additional-options-special.cfg
+( cd /compile/doc/kernel-config-options ; git rev-parse --verify HEAD ) > /compile/doc/starfive/misc.s64/options/kernel-config-options.version
+make olddefconfig
+./scripts/config --set-str CONFIG_LOCALVERSION "-s64-${TREE_VERSION}"
+make -j 4 Image.gz dtbs modules
+cd tools/perf
+# without this it would fail on warnings
+export WERROR=0
+make
+cd ../power/cpupower
+make
+cd ../../..
+export kver=`make kernelrelease`
+echo ${kver}
+# remove debug info if there and not wanted
+#find . -type f -name '*.ko' | sudo xargs -n 1 objcopy --strip-unneeded
+make modules_install
+mkdir -p /lib/modules/${kver}/tools
+cp -v tools/perf/perf /lib/modules/${kver}/tools
+cp -v tools/power/cpupower/cpupower /lib/modules/${kver}/tools
+cp -v tools/power/cpupower/libcpupower.so.0.0.1 /lib/modules/${kver}/tools/libcpupower.so.0
+# make headers_install INSTALL_HDR_PATH=/usr
+mkdir -p /boot
+cp -v .config /boot/config-${kver}
+cp -v arch/riscv/boot/Image.gz /boot/vmlinuz-${kver}
+mkdir -p /boot/dtb-${kver}/starfive
+cp -v arch/riscv/boot/dts/starfive/jh7110-*.dtb /boot/dtb-${kver}/starfive
+cp -v System.map /boot/System.map-${kver}
+cd /boot
+update-initramfs -c -k ${kver}
+tar cvzf /compile/source/linux-star64-s64/${kver}.tar.gz /boot/vmlinuz-${kver} /boot/System.map-${kver} /boot/config-${kver} /boot/dtb-${kver} /boot/initrd.img-${kver} /lib/modules/${kver}
+cp -v /compile/doc/starfive/config.s64 /compile/doc/starfive/config.s64.old
+cp -v /compile/source/linux-star64-s64/.config /compile/doc/starfive/config.s64
+cp -v /compile/source/linux-star64-s64/.config /compile/doc/starfive/config.s64-${kver}
+cp -v /compile/source/linux-star64-s64/*.tar.gz /compile/result/starfive
