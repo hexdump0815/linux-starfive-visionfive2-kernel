@@ -1,0 +1,2 @@
+- the boot-xyz.dd files are taken from the corresponding starfive images and the irradium one from this irradium image: https://dl.irradium.org/irradium/images/visionfive_2/irradium-3.7-riscv64-xfce-visionfive_2-6.6.68-build-20241227.img.zst ... they were created via (and afterwards gzip compressed): "dd if=/dev/sdcard of=boot-vf2.dd bs=512 seek=34 skip=34 count=16350" - the seek/skip of 34 sectors is to drop the included gpt partition info
+- the config files were taken from the /boot partition of the corresponding images

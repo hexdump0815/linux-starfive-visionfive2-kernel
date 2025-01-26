@@ -3,33 +3,30 @@
 # - /compile/source/linux-starfive-vf2 - the kernel sources checked out from gitrepo
 # - /compile/result/starfive - the resulting kernel, modules etc. tar.gz files
 # - /compile/doc/kernel-config-options - https://github.com/hexdump0815/kernel-config-options
-# - /compile/doc/kernel-extra-patches - https://github.com/hexdump0815/kernel-extra-patches
-# name: vf2-115 - kernel for the starfive visionfive 2 sbc based on the starfive VF2_v2.11.5 linux kernel tree
+# name: vf2-661 - kernel for the starfive visionfive 2 sbc based on the v6.6 legacy kernel tree
 
-# info: this is based on commit a87c6861c6d96621026ee53b94f081a1a00a4cc7 i.e. tag VF2_v2.11.5
-#       of the starfive kernel tree from https://github.com/starfive-tech/linux/ which matches
-#       version VF2_v2.11.5 of the visionfive2 tree from https://github.com/starfive-tech/VisionFive2
+# info: this is based on commit d0e7c0486d768a294f4f2b390d00dab8bee5d726 of the
+#       JH7110_VisionFive2_6.6.y_devel branch of the  kernel tree from
+#       https://github.com/starfive-tech/linux/ which matches
 
 cd /compile/source/linux-starfive-vf2
 
 # patches
-# add some patches from the icenowy star64 kernel
-# fb console patch - no longer required
-#patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-fbdev.patch
-# lets keep those off for now as well
-#patch -p1 < /compile/doc/starfive/misc.vf2/patches/add-pcie-gpu-support-v2.10.4.patch
-#patch -p1 < /compile/doc/starfive/misc.vf2/patches/disable-gamma-lut.patch
+# irradium patches
+for i in /compile/doc/starfive/misc.vf2/patches/irradium/*.patch; do
+  echo === $i
+  patch -p1 < $i
+done
+# to get the eswin wifi driver compiled
+patch -p1 < /compile/doc/starfive/misc.vf2/patches/fix-eswin-compile.patch
+# to get the img rogue driver compiled - is part of the irradium patches from above now
+#patch -p1 < /compile/doc/starfive/misc.vf2/patches/fix-img-rogue-compile.patch
 
-# add mglru backport to v5.15
-patch -p1 < /compile/doc/kernel-extra-patches/multi-gen-lru/v5.15/mglru-5.15.patch
-
-# fix compilation with newer binutils - no longer required
-#patch -p1 < /compile/doc/starfive/misc.vf2/patches/make-newer-binutils-work.patch
-
-export TREE_VERSION=115
+export TREE_VERSION=661
 export ARCH=riscv
-# lets start with the starfive_visionfive2 defconfig and adjust options from there
-scripts/kconfig/merge_config.sh -m arch/riscv/configs/starfive_visionfive2_defconfig /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/starfive/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/starfive/misc.vf2/options/additional-options-special.cfg
+# lets start with the config from the 202409 image with a v6.6 kernel config-6.6.20-starfive-202409
+# as the starfive_visionfive2 defconfig in the tree seems to be unuseable (missing CONFIG_UNIX etc.)
+scripts/kconfig/merge_config.sh -m /compile/doc/starfive/misc.vf2/misc/config-6.6.20-starfive-202409 /compile/doc/kernel-config-options/docker-options.cfg /compile/doc/kernel-config-options/options-to-remove-generic.cfg /compile/doc/starfive/misc.vf2/options/options-to-remove-special.cfg /compile/doc/kernel-config-options/additional-options-generic.cfg /compile/doc/kernel-config-options/additional-options-riscv.cfg /compile/doc/starfive/misc.vf2/options/additional-options-special.cfg
 ( cd /compile/doc/kernel-config-options ; git rev-parse --verify HEAD ) > /compile/doc/starfive/misc.vf2/options/kernel-config-options.version
 make olddefconfig
 ./scripts/config --set-str CONFIG_LOCALVERSION "-vf2-${TREE_VERSION}"

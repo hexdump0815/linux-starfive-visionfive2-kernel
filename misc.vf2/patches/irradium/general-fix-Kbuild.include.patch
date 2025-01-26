@@ -1,0 +1,16 @@
+--- a/scripts/Kbuild.include	2024-09-07 10:11:29.792769487 +0300
++++ b/scripts/Kbuild.include	2024-09-07 10:11:48.984834791 +0300
+@@ -272,8 +272,8 @@ endif
+ # global .NOTINTERMEDIATE does not work. We can use it on Make > 4.4.
+ # Use .SECONDARY for older Make versions, but "newer-prereq" cannot detect
+ # deleted files.
+-ifneq ($(and $(filter notintermediate, $(.FEATURES)),$(filter-out 4.4,$(MAKE_VERSION))),)
+-.NOTINTERMEDIATE:
+-else
+-.SECONDARY:
+-endif
++#ifneq ($(and $(filter notintermediate, $(.FEATURES)),$(filter-out 4.4,$(MAKE_VERSION))),)
++#.NOTINTERMEDIATE:
++#else
++#.SECONDARY:
++#endif

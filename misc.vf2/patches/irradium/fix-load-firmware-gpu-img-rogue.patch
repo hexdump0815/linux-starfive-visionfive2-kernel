@@ -1,0 +1,11 @@
+diff --git a/drivers/gpu/drm/img/img-rogue/Kconfig b/drivers/gpu/drm/img/img-rogue/Kconfig
+index 5b793bb9d..6f84a2643 100644
+--- a/drivers/gpu/drm/img/img-rogue/Kconfig
++++ b/drivers/gpu/drm/img/img-rogue/Kconfig
+@@ -1,5 +1,5 @@
+ config DRM_IMG_ROGUE
+-	bool "DRM support for PowerVR GPU"
++	tristate "DRM support for PowerVR GPU"
+ 	select DRM_IMG
+ 	default n
+ 	help

@@ -5,3 +5,6 @@ see also: https://github.com/starfive-tech/VisionFive2 to find out the kernel tr
 
 origin	https://github.com/Fishwaldo/Star64_linux.git (fetch)
 origin	https://github.com/Fishwaldo/Star64_linux.git (push)
+
+v6.6 legacy kernel tree
+https://github.com/starfive-tech/linux - branch: JH7110_VisionFive2_6.6.y_devel

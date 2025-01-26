@@ -1,0 +1,157 @@
+diff --git a/arch/riscv/boot/dts/starfive/Makefile b/arch/riscv/boot/dts/starfive/Makefile
+index e75298cb8..4d99ec582 100644
+--- a/arch/riscv/boot/dts/starfive/Makefile
++++ b/arch/riscv/boot/dts/starfive/Makefile
+@@ -5,9 +5,11 @@ DTC_FLAGS_jh7100-starfive-visionfive-v1 := -@
+ DTC_FLAGS_jh7110-starfive-visionfive-2-v1.2a := -@
+ DTC_FLAGS_jh7110-starfive-visionfive-2-v1.3b := -@
+ DTC_FLAGS_jh7110-evb := -@
++DTC_FLAGS_jh7110-pine64-star64 := -@
+ 
+ dtb-$(CONFIG_ARCH_STARFIVE) += jh7100-beaglev-starlight.dtb
+ dtb-$(CONFIG_ARCH_STARFIVE) += jh7100-starfive-visionfive-v1.dtb
++dtb-$(CONFIG_ARCH_STARFIVE) += jh7110-pine64-star64.dtb
+ 
+ subdir-y += vf2-overlay
+ dtb-$(CONFIG_ARCH_STARFIVE) += jh7110-starfive-visionfive-2-v1.2a.dtb
+diff --git a/arch/riscv/boot/dts/starfive/jh7110-pine64-star64.dts b/arch/riscv/boot/dts/starfive/jh7110-pine64-star64.dts
+new file mode 100644
+index 000000000..59d82bf91
+--- /dev/null
++++ b/arch/riscv/boot/dts/starfive/jh7110-pine64-star64.dts
+@@ -0,0 +1,104 @@
++// SPDX-License-Identifier: GPL-2.0 OR MIT
++/*
++ * Copyright (C) 2022 StarFive Technology Co., Ltd.
++ * Copyright (C) 2022 Emil Renner Berthing <kernel@esmil.dk>
++ */
++
++/dts-v1/;
++#include "jh7110-starfive-visionfive-2.dtsi"
++
++/ {
++	model = "Pine64 Star64";
++	compatible = "starfive,visionfive-2-v1.3b", "starfive,jh7110", "pine64,star64";
++};
++
++&gmac0 {
++	starfive,tx-use-rgmii-clk;
++	assigned-clocks = <&aoncrg JH7110_AONCLK_GMAC0_TX>;
++	assigned-clock-parents = <&aoncrg JH7110_AONCLK_GMAC0_RMII_RTX>;
++};
++
++&gmac1 {
++	starfive,tx-use-rgmii-clk;
++	assigned-clocks = <&syscrg JH7110_SYSCLK_GMAC1_TX>;
++	assigned-clock-parents = <&syscrg JH7110_SYSCLK_GMAC1_RMII_RTX>;
++};
++
++&phy0 {
++	motorcomm,tx-clk-adj-enabled;
++	motorcomm,tx-clk-100-inverted;
++	motorcomm,tx-clk-1000-inverted;
++	motorcomm,rx-clk-drv-microamp = <3970>;
++	motorcomm,rx-data-drv-microamp = <2910>;
++	rx-internal-delay-ps = <1500>;
++	tx-internal-delay-ps = <1500>;
++};
++
++&phy1 {
++	motorcomm,tx-clk-adj-enabled;
++	motorcomm,tx-clk-100-inverted;
++	motorcomm,rx-clk-drv-microamp = <3970>;
++	motorcomm,rx-data-drv-microamp = <2910>;
++	rx-internal-delay-ps = <300>;
++	tx-internal-delay-ps = <0>;
++};
++
++&i2c2 {
++	hym8563@51 {
++		compatible = "haoyu,hym8563";
++		reg = <0x51>;
++	};
++};
++
++&seeed_plane_i2c {
++	status = "disabled";
++};
++
++&tinker_ft5406 {
++	status = "disabled";
++};
++
++&touchscreen {
++	status = "disabled";
++};
++
++&panel_radxa {
++	status = "disabled";
++};
++
++&imx219 {
++	status = "disabled";
++};
++
++&imx708 {
++	status = "disabled";
++};
++
++&ov4689 {
++	status = "disabled";
++};
++
++&pcie0 {
++	status = "disabled";
++};
++
++&usb0 {
++	dr_mode = "host";
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&usb_pins>;
++};
++
++&sysgpio {
++	usb_pins: usb_pins {
++		drive-vbus-pin {
++			pinmux = <GPIOMUX(25, GPOUT_SYS_USB_DRIVE_VBUS,
++						GPOEN_DISABLE, GPI_NONE)>;
++			bias-pull-up;
++			drive-strength = <2>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++};
+\ No newline at end of file
+diff --git a/arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2.dtsi b/arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2.dtsi
+index fd674ed1a..6bf37d654 100644
+--- a/arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2.dtsi
++++ b/arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2.dtsi
+@@ -263,7 +263,7 @@ &i2c2 {
+ 	pinctrl-0 = <&i2c2_pins>;
+ 	status = "okay";
+ 
+-	seeed_plane_i2c@45 {
++	seeed_plane_i2c: seeed_plane_i2c@45 {
+ 		compatible = "seeed_panel";
+ 		reg = <0x45>;
+ 
+@@ -279,14 +279,14 @@ tinker_ft5406: tinker_ft5406@38 {
+ 		reg = <0x38>;
+ 	};
+ 
+-	touchscreen@14 {
++	touchscreen: touchscreen@14 {
+ 		compatible = "goodix,gt911";
+ 		reg = <0x14>;
+ 		irq-gpios = <&sysgpio 30 GPIO_ACTIVE_HIGH>;
+ 		reset-gpios = <&sysgpio 31 GPIO_ACTIVE_HIGH>;
+ 	};
+ 
+-	panel_radxa@19 {
++	panel_radxa: panel_radxa@19 {
+ 		compatible ="starfive_jadard";
+ 		reg = <0x19>;
+ 		reset-gpio = <&sysgpio 23 0>;

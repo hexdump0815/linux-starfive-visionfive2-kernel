@@ -1,0 +1,16 @@
+hack to make it compile, based on:
+https://patchwork.yoctoproject.org/project/ti/patch/20231101181124.23636-1-reatmon@ti.com/
+
+diff --git a/drivers/gpu/drm/img/img-rogue/Makefile b/drivers/gpu/drm/img/img-rogue/Makefile
+index ee37ef8cadbf..d31a357acabf 100644
+--- a/drivers/gpu/drm/img/img-rogue/Makefile
++++ b/drivers/gpu/drm/img/img-rogue/Makefile
+@@ -73,7 +73,7 @@ WINDOW_SYSTEM=nulldrmws
+ #include $(OUT)/config_kernel.mk
+ include $(srctree)/$(src)/config_kernel.mk
+ 
+-.SECONDARY:
++.NOTINTERMEDIATE:
+ 
+ define symlink-source-file
+ @if [ ! -e $(dir $@) ]; then mkdir -p $(dir $@); fi
